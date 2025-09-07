@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flutter Code Coverage Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #0066cc;
+      --header-color: #0066ff;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --background-color: #f8fafc;
+      --card-background: #ffffff;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+      line-height: 1.5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      text-align: center;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .header-content {
+      flex: 1;
+    }
+
+    .header-content h1 {
+      font-size: 3rem;
+      color: var(--header-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .header-content h1 img {
+      width: 48px;
+      height: 48px;
+    }
+
+    .header-content p {
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+    }
+
+    .header-actions {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .upload-icon-button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .upload-icon-button:hover {
+      background-color: rgba(0, 102, 204, 0.1);
+    }
+
+    .upload-icon-button.active {
+      background-color: rgba(0, 102, 204, 0.15);
+    }
+
+    .card {
+      background: var(--card-background);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--primary-color);
+      background: rgba(0, 102, 204, 0.05);
+    }
+
+    .upload-zone.drag-over {
+      border-color: var(--primary-color);
+      background: rgba(0, 102, 204, 0.1);
+    }
+
+    .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+
+    .upload-text {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: var(--card-background);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table th, table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    table th {
+      background-color: rgba(0, 102, 204, 0.05);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .coverage-pill {
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+
+    .coverage-high {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+    }
+
+    .coverage-medium {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--warning-color);
+    }
+
+    .coverage-low {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger-color);
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-background);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-title {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .footer {
+      font-weight: 600;
+      background-color: rgba(0, 102, 204, 0.05);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(0, 102, 204, 0.1);
+      border-left-color: var(--primary-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      color: var(--danger-color);
+      text-align: center;
+      padding: 1rem;
+      display: none;
+    }
+
+    .upload-button {
+      display: none;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin: 1rem 0;
+    }
+
+    .upload-button:hover {
+      background-color: #0052a3;
+    }
+
+    .upload-button-container {
+      text-align: right;
+    }
+
+    .card#uploadCard {
+      display: none;  /* Hide upload card by default */
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-content">
+        <h1> Flutter Code Coverage Report </h1>
+        <p>View and analyze your test coverage metrics</p>
+      </div>
+      <div class="header-actions">
+        <button id="toggleUpload" class="upload-icon-button" title="Upload Coverage Report">
+          📤
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="uploadCard">
+      <div id="uploadZone" class="upload-zone">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Drop your lcov.info file here or click to upload</div>
+        <div class="upload-hint">Supported file: lcov.info</div>
+        <input type="file" id="fileInput" accept=".info" hidden />
+      </div>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <div>Processing coverage data...</div>
+    </div>
+
+    <div id="error" class="error-message"></div>
+
+    <div id="summary"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const uploadZone = document.getElementById("uploadZone");
+    const uploadCard = document.getElementById("uploadCard");
+    const toggleUploadBtn = document.getElementById("toggleUpload");
+    const summaryEl = document.getElementById("summary");
+    const loadingEl = document.getElementById("loading");
+    const errorEl = document.getElementById("error");
+
+    const parseLCOV = (content) => {
+      try {
+        const files = content.split("end_of_record").map(f => f.trim()).filter(f => f);
+        const summary = [];
+
+        for (let file of files) {
+          const lines = file.split("\n");
+          const fileObj = { file: "", hit: 0, found: 0 };
+
+          for (let line of lines) {
+            if (line.startsWith("SF:")) fileObj.file = line.substring(3);
+            if (line.startsWith("DA:")) {
+              const parts = line.split(",");
+              if (parts[1] !== "0") fileObj.hit++;
+              fileObj.found++;
+            }
+          }
+          if (fileObj.found > 0) {
+            summary.push(fileObj);
+          }
+        }
+        return summary;
+      } catch (error) {
+        throw new Error("Invalid lcov.info file format");
+      }
+    };
+
+    const getCoverageClass = (percent) => {
+      if (percent >= 80) return "coverage-high";
+      if (percent >= 50) return "coverage-medium";
+      return "coverage-low";
+    };
+
+    const renderSummary = (data) => {
+      let totalHit = 0, totalFound = 0;
+      let html = '';
+
+      // Calculate totals
+      data.forEach(file => {
+        totalHit += file.hit;
+        totalFound += file.found;
+      });
+
+      const totalCoverage = ((totalHit / totalFound) * 100).toFixed(2);
+
+      // Render summary stats
+      html += `
+        <div class="summary-stats">
+          <div class="stat-card">
+            <div class="stat-title">Total Coverage</div>
+            <div class="stat-value">${totalCoverage}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Files Analyzed</div>
+            <div class="stat-value">${data.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Lines Covered</div>
+            <div class="stat-value">${totalHit}/${totalFound}</div>
+          </div>
+        </div>
+      `;
+
+      // Render detailed table
+      html += `
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Lines Covered</th>
+                <th>Total Lines</th>
+                <th>Coverage</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      data.forEach(file => {
+        const coverage = ((file.hit / file.found) * 100).toFixed(2);
+        const coverageClass = getCoverageClass(coverage);
+        const displayPath = file.file.replace(/^.*\/lib\//, 'lib/');
+
+        html += `
+          <tr>
+            <td>${displayPath}</td>
+            <td>${file.hit}</td>
+            <td>${file.found}</td>
+            <td><span class="coverage-pill ${coverageClass}">${coverage}%</span></td>
+          </tr>
+        `;
+      });
+
+      const totalCoverageClass = getCoverageClass(totalCoverage);
+      html += `
+            </tbody>
+            <tfoot>
+              <tr class="footer">
+                <td>Total</td>
+                <td>${totalHit}</td>
+                <td>${totalFound}</td>
+                <td><span class="coverage-pill ${totalCoverageClass}">${totalCoverage}%</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `;
+
+      summaryEl.innerHTML = html;
+    };
+
+    const showUploadUI = (show) => {
+      uploadCard.style.display = show ? "block" : "none";
+      toggleUploadBtn.classList.toggle("active", show);
+      if (!show) {
+        uploadZone.classList.remove("drag-over");
+      }
+    };
+
+    const toggleUploadUI = () => {
+      const isVisible = uploadCard.style.display === "block";
+      showUploadUI(!isVisible);
+    };
+
+    const showLoading = (show) => {
+      loadingEl.style.display = show ? "block" : "none";
+      uploadCard.style.display = "none";  // Always hide upload UI during loading
+    };
+
+    const showError = (message) => {
+      errorEl.textContent = message;
+      errorEl.style.display = "block";
+      setTimeout(() => {
+        errorEl.style.display = "none";
+      }, 5000);
+    };
+
+    const loadLCOV = async (content) => {
+      showLoading(true);
+      try {
+        const parsed = parseLCOV(content);
+        if (parsed.length === 0) {
+          throw new Error("No coverage data found in the file");
+        }
+        renderSummary(parsed);
+        showUploadUI(false); // Hide upload UI after successful load
+      } catch (error) {
+        showError(error.message);
+        showUploadUI(true);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    const handleFile = (file) => {
+      const reader = new FileReader();
+      reader.onload = () => loadLCOV(reader.result);
+      reader.onerror = () => showError("Error reading file");
+      reader.readAsText(file);
+    };
+
+    // File input handling
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // Drag and drop handling
+    uploadZone.addEventListener("click", () => fileInput.click());
+
+    uploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadZone.classList.add("drag-over");
+    });
+
+    uploadZone.addEventListener("dragleave", () => {
+      uploadZone.classList.remove("drag-over");
+    });
+
+    uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove("drag-over");
+      if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    // Toggle upload UI when button is clicked
+    toggleUploadBtn.addEventListener("click", toggleUploadUI);
+
+    // Auto-load lcov.info if present
+    window.addEventListener("load", () => {
+      showUploadUI(false); // Hide upload UI initially
+      fetch("lcov.info")
+        .then(response => {
+          if (!response.ok) throw new Error();
+          return response.text();
+        })
+        .then(data => loadLCOV(data))
+        .catch(() => {
+          showUploadUI(true); // Only show upload UI if no file found
+        });
+    });
+  </script>
+</body>
+</html>
